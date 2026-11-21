@@ -1,0 +1,18 @@
+# Processing export / build
+application.*
+*.class
+build/
+out/
+
+# Progres pemain lokal
+game/progress.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.iml

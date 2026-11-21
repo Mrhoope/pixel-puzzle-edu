@@ -1,0 +1,17 @@
+{
+  "id": 8,
+  "title": "Hanya Positif",
+  "concept": "Kondisi ganda",
+  "brief": "Keluarkan angka positif saja. Lewati 0 dan angka negatif.",
+  "memorySize": 1,
+  "initialMemory": [0],
+  "availableBlocks": ["AMBIL", "TARUH", "SIMPAN", "MUAT", "TAMBAH", "KURANG", "LABEL", "LONCAT", "LONCAT JIKA NOL", "LONCAT JIKA NEGATIF"],
+  "runLimit": 200,
+  "sizeTarget": 8,
+  "speedTarget": 26,
+  "tests": [
+    { "inbox": [3, -2, 0, 5], "expected": [3, 5] },
+    { "inbox": [-1], "expected": [] },
+    { "inbox": [0], "expected": [] }
+  ]
+}

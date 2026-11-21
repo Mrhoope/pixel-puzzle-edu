@@ -1,0 +1,843 @@
+// UI: menggambar semua layar dan menangani klik/ketikan.
+// Tidak mengubah aturan permainan; semua aksi diteruskan ke GameState.
+
+class UI {
+  static final int COL_BG = 0xFF1A1C2C;
+  static final int COL_BG2 = 0xFF12141F;
+  static final int COL_PANEL = 0xFF2B2F45;
+  static final int COL_PANEL_DARK = 0xFF202336;
+  static final int COL_PANEL_HI = 0xFF3B4060;
+  static final int COL_TEXT = 0xFFF4F4F4;
+  static final int COL_MUTED = 0xFF8A93B2;
+  static final int COL_LOCK = 0xFF5A607F;
+  static final int COL_IO = 0xFF4FC3F7;
+  static final int COL_MEM = 0xFF8BC34A;
+  static final int COL_ARITH = 0xFFF2A65A;
+  static final int COL_FLOW = 0xFFB07CFF;
+  static final int COL_WARN = 0xFFFF6B81;
+  static final int COL_GOLD = 0xFFFFD166;
+  static final int COL_BLUE = 0xFF5C7CFA;
+  static final int COL_WHITE = 0xFFFFFFFF;
+
+  static final int K_BACKSPACE = 8;
+  static final int K_ENTER = 10;
+  static final int K_RETURN = 13;
+  static final int K_ESC = 27;
+  static final int K_SPACE = 32;
+  static final int K_LEFT = 37;
+  static final int K_UP = 38;
+  static final int K_RIGHT = 39;
+  static final int K_DOWN = 40;
+  static final int K_DELETE = 127;
+
+  PApplet p;
+  PFont fTiny, fSmall, fMid, fBig;
+  float mx, my;
+
+  UI(PApplet app, PFont tiny, PFont small, PFont mid, PFont big) {
+    p = app;
+    fTiny = tiny;
+    fSmall = small;
+    fMid = mid;
+    fBig = big;
+  }
+
+  void render(GameState g) {
+    mx = p.mouseX / (float) GameState.SCALE;
+    my = p.mouseY / (float) GameState.SCALE;
+    p.noStroke();
+    if (g.screen == GameState.MENU) {
+      renderMenu(g);
+    } else if (g.screen == GameState.SELECT) {
+      renderSelect(g);
+    } else if (g.screen == GameState.TUTORIAL) {
+      renderTutorial(g);
+    } else {
+      renderPlay(g);
+    }
+  }
+
+  // ---------- util gambar ----------
+
+  void box(float x, float y, float w, float h, int c) {
+    p.noStroke();
+    p.fill(c);
+    p.rect(x, y, w, h);
+  }
+
+  void panel(float x, float y, float w, float h, int border) {
+    p.noStroke();
+    p.fill(border);
+    p.rect(x, y, w, h);
+    p.fill(COL_PANEL);
+    p.rect(x + 1, y + 1, w - 2, h - 2);
+  }
+
+  void panelDark(float x, float y, float w, float h, int border) {
+    p.noStroke();
+    p.fill(border);
+    p.rect(x, y, w, h);
+    p.fill(COL_PANEL_DARK);
+    p.rect(x + 1, y + 1, w - 2, h - 2);
+  }
+
+  void text(String s, float x, float y, int c, PFont f) {
+    p.textFont(f);
+    p.fill(c);
+    p.textAlign(p.LEFT, p.CENTER);
+    p.text(s, x, y);
+  }
+
+  void textRight(String s, float x, float y, int c, PFont f) {
+    p.textFont(f);
+    p.fill(c);
+    p.textAlign(p.RIGHT, p.CENTER);
+    p.text(s, x, y);
+  }
+
+  void textCenter(String s, float x, float y, int c, PFont f) {
+    p.textFont(f);
+    p.fill(c);
+    p.textAlign(p.CENTER, p.CENTER);
+    p.text(s, x, y);
+  }
+
+  void button(float x, float y, float w, float h, String s, int base) {
+    boolean hover = mx >= x && mx < x + w && my >= y && my < y + h;
+    box(x, y, w, h, hover ? COL_PANEL_HI : base);
+    textCenter(s, x + w / 2, y + h / 2 + 0.5f, COL_TEXT, fTiny);
+  }
+
+  boolean hit(float x, float y, float rx, float ry, float rw, float rh) {
+    return x >= rx && x < rx + rw && y >= ry && y < ry + rh;
+  }
+
+  void backButton() {
+    button(2, 2, 12, 10, "<", COL_PANEL_HI);
+  }
+
+  // ---------- menu ----------
+
+  void renderMenu(GameState g) {
+    box(0, 0, 320, 180, COL_BG);
+    box(0, 0, 320, 3, COL_BLUE);
+    box(0, 177, 320, 3, COL_FLOW);
+
+    int elapsed = p.millis();
+    for (int i = 0; i < 24; i++) {
+      int c = (i % 3 == 0) ? COL_BLUE : (i % 3 == 1 ? COL_FLOW : COL_IO);
+      float speed = 0.025f + (i % 4) * 0.008f;
+      float y = 18 + (i * 29 + elapsed * speed) % 140;
+      float x = 8 + (i * 47) % 304;
+      box(x, y, 2, 2, c);
+      if (i % 3 == 0) box(312 - x, 176 - y, 2, 2, COL_PANEL_HI);
+    }
+
+    textCenter("PIXEL PUZZLE", 160, 38, COL_GOLD, fBig);
+    textCenter("Edukasi Algoritmik", 160, 54, COL_MUTED, fSmall);
+
+    button(96, 70, 128, 16, "MULAI", COL_BLUE);
+    button(96, 90, 128, 16, "TUTORIAL", COL_FLOW);
+    button(96, 110, 128, 16, "PILIH LEVEL", COL_PANEL_HI);
+    button(96, 130, 128, 16, "KELUAR", COL_PANEL_HI);
+
+    text("10 level - satu konsep baru per level", 8, 164, COL_MUTED, fTiny);
+    textRight("kerangka v0.1", 312, 174, COL_MUTED, fTiny);
+  }
+
+  // ---------- tutorial ----------
+
+  void renderTutorial(GameState g) {
+    box(0, 0, 320, 180, COL_BG);
+    box(0, 0, 320, 3, COL_BLUE);
+    box(0, 177, 320, 3, COL_FLOW);
+
+    box(0, 0, 320, 14, COL_PANEL);
+    backButton();
+    text("TUTORIAL", 20, 7, COL_TEXT, fSmall);
+    textRight((g.tutorialPage + 1) + "/" + GameState.TUTORIAL_PAGES, 312, 7, COL_MUTED, fTiny);
+
+    panel(6, 18, 308, 122, COL_FLOW);
+    if (g.tutorialPage == 0) {
+      drawTutorialIntro();
+    } else if (g.tutorialPage == 1) {
+      drawTutorialAmbil();
+    } else if (g.tutorialPage == 2) {
+      drawTutorialTaruh();
+    } else if (g.tutorialPage == 3) {
+      drawTutorialMemory();
+    } else if (g.tutorialPage == 4) {
+      drawTutorialMath();
+    } else if (g.tutorialPage == 5) {
+      drawTutorialJump();
+    } else if (g.tutorialPage == 6) {
+      drawTutorialZeroJump();
+    } else if (g.tutorialPage == 7) {
+      drawTutorialNegativeJump();
+    } else if (g.tutorialPage == 8) {
+      drawTutorialRun();
+    } else if (g.tutorialPage == 9) {
+      drawTutorialEdit();
+    } else {
+      drawTutorialControls();
+    }
+
+    button(6, 146, 54, 18, "< KEMBALI", COL_PANEL_HI);
+    button(112, 146, 64, 18, "LEWATI", COL_PANEL_HI);
+    String next = (g.tutorialPage == GameState.TUTORIAL_PAGES - 1) ? "COBA LEVEL 1" : "LANJUT >";
+    button(220, 146, 94, 18, next, COL_BLUE);
+
+    for (int i = 0; i < GameState.TUTORIAL_PAGES; i++) {
+      int c = (i == g.tutorialPage) ? COL_GOLD : (i < g.tutorialPage ? COL_IO : COL_LOCK);
+      box(148 + i * 8, 169, 5, 3, c);
+    }
+  }
+
+  void demoBox(float x, float y, float w, float h, String label, int c) {
+    panelDark(x, y, w, h, c);
+    text(label, x + 3, y + 5, c, fTiny);
+  }
+
+  void demoItems(int[] vals, float x, float y, int highlight) {
+    for (int i = 0; i < vals.length; i++) {
+      float ix = x + i * 14;
+      int c = (i == highlight) ? COL_GOLD : COL_IO;
+      box(ix, y, 12, 12, c);
+      textCenter(Integer.toString(vals[i]), ix + 6, y + 6, COL_BG2, fTiny);
+    }
+  }
+
+  void drawTutorialIntro() {
+    text("TUJUAN", 12, 27, COL_GOLD, fSmall);
+    text("Pindahkan semua angka dari INBOX ke OUTBOX.", 12, 38, COL_TEXT, fTiny);
+
+    demoBox(10, 52, 92, 46, "INBOX", COL_IO);
+    demoItems(new int[] {1, 2, 3}, 18, 68, -1);
+    demoBox(218, 52, 92, 46, "OUTBOX", COL_MEM);
+    textCenter("kosong", 264, 76, COL_MUTED, fTiny);
+
+    drawRobot(150, 60);
+    textCenter(">", 112, 72, COL_GOLD, fBig);
+    textCenter(">", 200, 72, COL_GOLD, fBig);
+
+    text("INBOX = kotak masuk.  OUTBOX = kotak keluar.", 12, 108, COL_MUTED, fTiny);
+    text("Urutan angka harus tetap sama.", 12, 118, COL_MUTED, fTiny);
+  }
+
+  void drawTutorialAmbil() {
+    text("LANGKAH 1: AMBIL", 12, 27, COL_GOLD, fSmall);
+    text("Ambil 1 angka dari INBOX ke TANGAN.", 12, 38, COL_TEXT, fTiny);
+
+    demoBox(10, 52, 88, 46, "INBOX", COL_IO);
+    demoItems(new int[] {1, 2, 3}, 18, 68, 0);
+    drawRobot(112, 60);
+    text("AMBIL >", 136, 67, COL_GOLD, fSmall);
+    demoBox(220, 52, 90, 46, "TANGAN", COL_GOLD);
+    textCenter("1", 265, 78, COL_TEXT, fMid);
+
+    text("Tangan menyimpan 1 angka sementara.", 12, 108, COL_MUTED, fTiny);
+    text("Angka emas = yang diambil berikutnya.", 12, 118, COL_MUTED, fTiny);
+  }
+
+  void drawTutorialTaruh() {
+    text("LANGKAH 2: TARUH", 12, 27, COL_GOLD, fSmall);
+    text("Pindahkan angka dari TANGAN ke OUTBOX.", 12, 38, COL_TEXT, fTiny);
+
+    demoBox(10, 52, 88, 46, "TANGAN", COL_GOLD);
+    textCenter("1", 54, 78, COL_TEXT, fMid);
+    drawRobot(112, 60);
+    text("TARUH >", 136, 67, COL_MEM, fSmall);
+    demoBox(220, 52, 90, 46, "OUTBOX", COL_MEM);
+    demoItems(new int[] {1}, 230, 68, -1);
+
+    text("Setelah TARUH, tangan kosong.", 12, 108, COL_MUTED, fTiny);
+    text("Lalu ulangi untuk angka berikutnya.", 12, 118, COL_MUTED, fTiny);
+  }
+
+  void drawTutorialMemory() {
+    text("SIMPAN & MUAT: GUNAKAN MEMORI", 12, 27, COL_GOLD, fSmall);
+    text("Memori adalah kotak untuk menyimpan angka sementara.", 12, 38, COL_TEXT, fTiny);
+
+    demoBox(16, 54, 74, 42, "TANGAN", COL_GOLD);
+    textCenter("5", 53, 78, COL_TEXT, fMid);
+    textCenter("SIMPAN 0 >", 150, 68, COL_BLUE, fTiny);
+    demoBox(228, 54, 74, 42, "MEM 0", COL_MEM);
+    textCenter("5", 265, 78, COL_TEXT, fMid);
+
+    text("SIMPAN 0 menyalin angka tangan ke memori 0.", 12, 108, COL_MUTED, fTiny);
+    text("MUAT 0 menyalin isi memori 0 kembali ke tangan.", 12, 120, COL_MUTED, fTiny);
+    text("SIMPAN tidak mengosongkan tangan.", 12, 132, COL_GOLD, fTiny);
+  }
+
+  void drawTutorialMath() {
+    text("TAMBAH & KURANG: HITUNG ANGKA", 12, 27, COL_GOLD, fSmall);
+    text("Operasi memakai angka di tangan dan memori yang dipilih.", 12, 38, COL_TEXT, fTiny);
+
+    demoBox(16, 54, 78, 42, "TANGAN", COL_GOLD);
+    textCenter("7", 55, 78, COL_TEXT, fMid);
+    demoBox(226, 54, 78, 42, "MEM 0", COL_MEM);
+    textCenter("3", 265, 78, COL_TEXT, fMid);
+
+    text("TAMBAH 0: 7 + 3 = 10", 44, 108, COL_IO, fSmall);
+    text("KURANG 0: 7 - 3 = 4", 44, 122, COL_ARITH, fSmall);
+    text("Hasilnya disimpan di tangan.", 44, 135, COL_MUTED, fTiny);
+  }
+
+  void drawTutorialJump() {
+    text("LABEL & LONCAT: ULANGI BLOK", 12, 27, COL_GOLD, fSmall);
+    text("LABEL memberi nomor pada baris program.", 12, 38, COL_TEXT, fTiny);
+
+    panel(12, 50, 124, 76, COL_FLOW);
+    text("1  LABEL 0", 20, 62, COL_GOLD, fTiny);
+    text("2  AMBIL", 20, 76, COL_TEXT, fTiny);
+    text("3  TARUH", 20, 90, COL_TEXT, fTiny);
+    text("4  LONCAT 0", 20, 104, COL_BLUE, fTiny);
+
+    text("LONCAT 0 kembali ke LABEL 0.", 150, 59, COL_TEXT, fTiny);
+    text("Blok di antaranya diulang.", 150, 72, COL_TEXT, fTiny);
+    text("Angka 0 adalah nomor tujuan,", 150, 92, COL_MUTED, fTiny);
+    text("bukan angka di tangan.", 150, 104, COL_MUTED, fTiny);
+    text("LABEL tujuan harus ada.", 150, 121, COL_GOLD, fTiny);
+  }
+
+  void drawTutorialZeroJump() {
+    text("L-NOL: LONCAT JIKA NOL", 12, 27, COL_GOLD, fSmall);
+    text("Periksa angka yang sedang di tangan.", 12, 38, COL_TEXT, fTiny);
+
+    demoBox(18, 54, 90, 42, "TANGAN", COL_GOLD);
+    textCenter("0", 63, 78, COL_TEXT, fMid);
+    text("L-NOL 1", 142, 69, COL_BLUE, fSmall);
+    text("Jika 0: lompat ke LABEL 1.", 142, 84, COL_TEXT, fTiny);
+    text("Jika bukan 0: lanjut ke blok berikutnya.", 28, 112, COL_MUTED, fTiny);
+    text("Nomor LABEL 1 harus ada di program.", 28, 126, COL_GOLD, fTiny);
+  }
+
+  void drawTutorialNegativeJump() {
+    text("L-NEG: LONCAT JIKA NEGATIF", 12, 27, COL_GOLD, fSmall);
+    text("Angka negatif adalah angka di bawah 0, misalnya -3.", 12, 38, COL_TEXT, fTiny);
+
+    demoBox(18, 54, 90, 42, "TANGAN", COL_GOLD);
+    textCenter("-3", 63, 78, COL_TEXT, fMid);
+    text("L-NEG 1", 142, 69, COL_BLUE, fSmall);
+    text("Jika negatif: lompat ke LABEL 1.", 142, 84, COL_TEXT, fTiny);
+    text("Jika 0 atau positif: lanjut ke blok berikutnya.", 28, 112, COL_MUTED, fTiny);
+    text("Nomor LABEL 1 harus ada di program.", 28, 126, COL_GOLD, fTiny);
+  }
+
+  void drawTutorialRun() {
+    text("LANGKAH 3: SUSUN PROGRAM", 12, 27, COL_GOLD, fSmall);
+    text("Klik blok di palet bawah untuk menambah.", 12, 38, COL_TEXT, fTiny);
+
+    panel(10, 50, 132, 84, COL_FLOW);
+    text("PROGRAM", 14, 56, COL_TEXT, fTiny);
+    box(14, 66, 124, 16, COL_IO);
+    text("1  AMBIL", 18, 74, COL_BG2, fTiny);
+    box(14, 84, 124, 16, COL_IO);
+    text("2  TARUH", 18, 92, COL_BG2, fTiny);
+    text("Dari atas ke bawah.", 14, 108, COL_MUTED, fTiny);
+
+    text("CONTOH", 150, 56, COL_MUTED, fTiny);
+    text("Urutan program dibaca", 150, 68, COL_TEXT, fTiny);
+    text("dari blok nomor 1 ke bawah.", 150, 79, COL_TEXT, fTiny);
+    text("Program tidak berjalan", 150, 96, COL_MUTED, fTiny);
+    text("hanya dengan menyusunnya.", 150, 107, COL_MUTED, fTiny);
+    text("Gunakan tombol eksekusi", 150, 122, COL_GOLD, fTiny);
+    text("pada halaman berikutnya.", 150, 132, COL_GOLD, fTiny);
+  }
+
+  void drawTutorialEdit() {
+    text("EDIT PROGRAM", 12, 27, COL_GOLD, fSmall);
+    text("Klik blok untuk memilihnya.", 12, 38, COL_TEXT, fTiny);
+
+    panel(10, 50, 300, 78, COL_FLOW);
+    text("KLIK SEKALI", 18, 62, COL_BLUE, fTiny);
+    text("Pilih blok. Klik dua kali untuk mengubah angka argumen.", 18, 73, COL_TEXT, fTiny);
+
+    text("PANAH ATAS / BAWAH", 18, 88, COL_BLUE, fTiny);
+    text("Geser urutan blok yang dipilih.", 18, 99, COL_TEXT, fTiny);
+
+    text("KLIK KANAN / DELETE", 18, 114, COL_WARN, fTiny);
+    text("Hapus blok.", 148, 114, COL_TEXT, fTiny);
+
+    text("Argumen tersedia: memori 0..ukuran-1, label dan lompat 0..9.", 12, 133, COL_MUTED, fTiny);
+  }
+
+  void drawTutorialControls() {
+    text("TOMBOL DI LAYAR PERMAINAN", 12, 27, COL_GOLD, fSmall);
+
+    panel(10, 44, 300, 90, COL_FLOW);
+    box(16, 52, 52, 12, COL_BLUE);
+    textCenter("JALANKAN", 42, 58, COL_TEXT, fTiny);
+    text("Mulai atau lanjutkan program.", 74, 58, COL_TEXT, fTiny);
+
+    box(16, 70, 52, 12, COL_PANEL_HI);
+    textCenter("JEDA", 42, 76, COL_TEXT, fTiny);
+    text("Hentikan sementara eksekusi.", 74, 76, COL_TEXT, fTiny);
+
+    box(16, 88, 52, 12, COL_PANEL_HI);
+    textCenter("LANGKAH", 42, 94, COL_TEXT, fTiny);
+    text("Jalankan satu blok saja.", 74, 94, COL_TEXT, fTiny);
+
+    box(16, 106, 52, 12, COL_PANEL_HI);
+    textCenter("RESET", 42, 112, COL_TEXT, fTiny);
+    text("Kembalikan program ke awal.", 74, 112, COL_TEXT, fTiny);
+
+    box(16, 124, 52, 10, COL_PANEL_HI);
+    textCenter("NORMAL", 42, 129, COL_TEXT, fTiny);
+    text("NORMAL 1x / CEPAT 4x mengubah kecepatan.", 74, 129, COL_TEXT, fTiny);
+
+    text("Enter = Jalan, Spasi = Langkah, Esc = pilih level.", 12, 138, COL_MUTED, fTiny);
+  }
+
+  // ---------- pilih level ----------
+
+  void renderSelect(GameState g) {
+    box(0, 0, 320, 180, COL_BG);
+    box(0, 0, 320, 14, COL_PANEL);
+    backButton();
+    text("PILIH LEVEL", 20, 7, COL_TEXT, fSmall);
+    textRight("BINTANG: " + totalStars(g) + "/30", 312, 7, COL_MUTED, fTiny);
+
+    for (int i = 0; i < g.levelCount; i++) {
+      Level lv = g.levels[i];
+      int col = i % 5;
+      int row = i / 5;
+      float x = 12 + col * 60;
+      float y = 44 + row * 58;
+      float w = 56;
+      float h = 50;
+      boolean locked = (i + 1) > g.unlocked;
+      boolean hover = hit(mx, my, x, y, w, h);
+
+      if (locked) {
+        box(x, y, w, h, COL_LOCK);
+        box(x + 1, y + 1, w - 2, h - 2, COL_PANEL_DARK);
+        textCenter("TERKUNCI", x + w / 2, y + h / 2, COL_LOCK, fTiny);
+        textCenter(String.format("%02d", lv.id), x + w / 2, y + 12, COL_LOCK, fSmall);
+      } else {
+        box(x, y, w, h, hover ? COL_BLUE : COL_PANEL);
+        box(x, y, w, 2, COL_BLUE);
+        text(String.format("%02d", lv.id), x + 4, y + 11, COL_MUTED, fTiny);
+        String title = lv.title;
+        if (title.length() > 12) title = title.substring(0, 12);
+        textCenter(title, x + w / 2, y + 22, COL_TEXT, fTiny);
+        textCenter(lv.concept, x + w / 2, y + 32, COL_MUTED, fTiny);
+        starRow(x + w / 2, y + 42, g.stars[lv.id], 4, 6);
+      }
+    }
+
+    text("Pilih level yang terbuka. Klik kanan di panel program untuk menghapus blok.", 8, 172, COL_MUTED, fTiny);
+  }
+
+  void starRow(float cx, float y, int n, float size, float gap) {
+    float total = 3 * size + 2 * gap;
+    float x0 = cx - total / 2;
+    for (int i = 0; i < 3; i++) {
+      p.fill(i < n ? COL_GOLD : COL_PANEL_DARK);
+      p.rect(x0 + i * (size + gap), y, size, size);
+    }
+  }
+
+  int totalStars(GameState g) {
+    int total = 0;
+    for (int i = 1; i <= 10; i++) total += g.stars[i];
+    return total;
+  }
+
+  // ---------- layar bermain ----------
+
+  void renderPlay(GameState g) {
+    box(0, 0, 320, 180, COL_BG);
+    if (g.currentLevel < 0 || g.currentLevel >= g.levelCount) return;
+    Level lv = g.levels[g.currentLevel];
+
+    box(0, 0, 320, 14, COL_PANEL);
+    backButton();
+    text("LEVEL " + lv.id + "  " + lv.title, 20, 7, COL_TEXT, fSmall);
+    textRight("SIZE " + lv.sizeTarget + "  SPEED " + lv.speedTarget, 288, 7, COL_MUTED, fTiny);
+    button(306, 2, 12, 10, "?", COL_FLOW);
+
+    panelDark(0, 14, 320, 18, COL_PANEL_HI);
+    p.textFont(fTiny);
+    p.fill(COL_TEXT);
+    p.textAlign(p.LEFT, p.TOP);
+    p.text(lv.brief, 4, 15, 312, 8);
+    if (lv.tests.size() > 0) {
+      TestCase example = lv.tests.get(0);
+      String exampleText = "Contoh: " + formatValues(example.inbox) + " -> " + formatValues(example.expected);
+      p.fill(COL_GOLD);
+      p.text(exampleText, 4, 23, 312, 8);
+    }
+
+    drawInbox(g, 4, 32, 92, 32);
+    drawOutbox(g, 100, 32, 92, 32);
+    drawRobot(94, 68);
+    drawHand(g, 116, 66, 26, 22);
+    drawMemory(g, 4, 100, 188, 32);
+    drawStatus(g, lv);
+    drawControls(g);
+    drawPalette(g, lv);
+    drawProgramPanel(g, lv);
+
+    if (g.resultShown) drawResult(g);
+    if (g.helpShown) drawBlockHelp(g, lv);
+  }
+
+  String formatValues(int[] values) {
+    String result = "[";
+    int shown = Math.min(values.length, 3);
+    for (int i = 0; i < shown; i++) {
+      if (i > 0) result += ", ";
+      result += values[i];
+    }
+    if (values.length > shown) {
+      if (shown > 0) result += ", ";
+      result += "...";
+    }
+    return result + "]";
+  }
+
+  void drawBlockHelp(GameState g, Level lv) {
+    p.fill(10, 12, 20, 230);
+    p.rect(0, 0, 320, 180);
+
+    panel(20, 16, 280, 148, COL_FLOW);
+    text("DEFINISI BLOK", 28, 25, COL_GOLD, fSmall);
+    textRight("?", 292, 25, COL_FLOW, fMid);
+
+    String[] names = {
+      Block.AMBIL, Block.TARUH, Block.SIMPAN, Block.MUAT, Block.TAMBAH,
+      Block.KURANG, Block.LABEL, Block.LONCAT, Block.LONCAT_NOL, Block.LONCAT_NEG
+    };
+    String[] defs = {
+      "Ambil satu angka dari INBOX ke TANGAN.",
+      "Pindahkan angka TANGAN ke OUTBOX.",
+      "Salin TANGAN ke indeks memori.",
+      "Salin memori ke TANGAN.",
+      "Tambahkan memori ke TANGAN.",
+      "Kurangkan TANGAN dengan memori.",
+      "Tandai baris ini dengan nomor.",
+      "Pergi ke LABEL bernomor ini.",
+      "Jika tangan nol, lompat ke LABEL ini.",
+      "Jika tangan negatif, lompat ke LABEL ini."
+    };
+
+    for (int i = 0; i < names.length; i++) {
+      float x = (i < 5) ? 28 : 166;
+      float y = 42 + ((i < 5) ? i : i - 5) * 21;
+      boolean available = lv.blocks.contains(names[i]);
+      int nameColor = available ? blockColor(names[i]) : COL_LOCK;
+      int defColor = available ? COL_TEXT : COL_MUTED;
+
+      String name = shortOf(names[i]);
+      text(name, x, y, nameColor, fTiny);
+      p.textFont(fTiny);
+      p.fill(defColor);
+      p.textAlign(p.LEFT, p.TOP);
+      p.text(defs[i], x, y + 5, 126, 14);
+    }
+
+    text("Blok gelap = belum tersedia di level ini.", 28, 151, COL_MUTED, fTiny);
+    button(254, 145, 38, 13, "TUTUP", COL_BLUE);
+  }
+
+  void drawItems(ArrayList<Integer> items, float x, float y, int maxShow) {
+    int n = Math.min(items.size(), maxShow);
+    for (int i = 0; i < n; i++) {
+      float ix = x + (i % 9) * 10;
+      float iy = y + (i / 9) * 10;
+      box(ix, iy, 9, 9, COL_IO);
+      textCenter(Integer.toString(items.get(i)), ix + 4.5f, iy + 5, COL_BG2, fTiny);
+    }
+    if (items.size() > maxShow) {
+      text("+" + (items.size() - maxShow), x + 86, y + 2, COL_MUTED, fTiny);
+    }
+  }
+
+  void drawInbox(GameState g, float x, float y, float w, float h) {
+    panelDark(x, y, w, h, COL_IO);
+    text("INBOX", x + 3, y + 5, COL_IO, fTiny);
+    if (g.vm != null) drawItems(g.vm.inbox, x + 3, y + 9, 18);
+  }
+
+  void drawOutbox(GameState g, float x, float y, float w, float h) {
+    panelDark(x, y, w, h, COL_MEM);
+    text("OUTBOX", x + 3, y + 5, COL_MEM, fTiny);
+    if (g.vm != null) drawItems(g.vm.outbox, x + 3, y + 9, 18);
+  }
+
+  void drawRobot(float x, float y) {
+    box(x + 4, y, 8, 2, COL_MEM);
+    box(x + 2, y + 2, 12, 10, COL_MEM);
+    box(x + 4, y + 4, 2, 2, COL_BG2);
+    box(x + 10, y + 4, 2, 2, COL_BG2);
+    box(x + 4, y + 12, 8, 7, COL_BLUE);
+    box(x + 1, y + 13, 2, 4, COL_BLUE);
+    box(x + 13, y + 13, 2, 4, COL_BLUE);
+  }
+
+  void drawHand(GameState g, float x, float y, float w, float h) {
+    panelDark(x, y, w, h, COL_GOLD);
+    textCenter("TANGAN", x + w / 2, y + 5, COL_GOLD, fTiny);
+    String v = "-";
+    if (g.vm != null && g.vm.hand != null) v = g.vm.hand.toString();
+    textCenter(v, x + w / 2, y + 14, COL_TEXT, fSmall);
+  }
+
+  void drawMemory(GameState g, float x, float y, float w, float h) {
+    if (g.currentLevel >= g.levelCount) return;
+    Level lv = g.levels[g.currentLevel];
+    panelDark(x, y, w, h, COL_MEM);
+    text("MEMORI", x + 3, y + 5, COL_MEM, fTiny);
+    for (int i = 0; i < lv.memorySize && i < 8; i++) {
+      float bx = x + 3 + i * 22;
+      float by = y + 9;
+      box(bx, by, 20, 18, COL_PANEL_HI);
+      text(Integer.toString(i), bx + 2, by + 3, COL_MUTED, fTiny);
+      String val = "0";
+      if (g.vm != null && g.vm.memory != null && i < g.vm.memory.length) {
+        val = Integer.toString(g.vm.memory[i]);
+      }
+      textCenter(val, bx + 10, by + 12, COL_TEXT, fSmall);
+    }
+  }
+
+  void drawStatus(GameState g, Level lv) {
+    String s = "LANGKAH " + (g.vm != null ? g.vm.steps : 0) + "/" + lv.runLimit;
+    if (g.vm != null && g.vm.failed) s += "  " + g.vm.message;
+    text(s, 4, 138, g.vm != null && g.vm.failed ? COL_WARN : COL_MUTED, fTiny);
+    if (g.resultShown) return;
+    if (g.vm != null && g.vm.activeIndex >= 0) {
+      textRight("BLOK AKTIF: " + (g.vm.activeIndex + 1), 312, 138, COL_GOLD, fTiny);
+    }
+  }
+
+  void drawControls(GameState g) {
+    button(4, 145, 46, 12, "JALANKAN", COL_BLUE);
+    button(52, 145, 28, 12, "JEDA", COL_PANEL_HI);
+    button(82, 145, 38, 12, "LANGKAH", COL_PANEL_HI);
+    button(122, 145, 28, 12, "RESET", COL_PANEL_HI);
+    button(152, 145, 38, 12, g.fastRun ? "CEPAT 4x" : "NORMAL 1x", COL_PANEL_HI);
+  }
+
+  int blockColor(String op) {
+    if (op.equals(Block.AMBIL) || op.equals(Block.TARUH)) return COL_IO;
+    if (op.equals(Block.SIMPAN) || op.equals(Block.MUAT)) return COL_MEM;
+    if (op.equals(Block.TAMBAH) || op.equals(Block.KURANG)) return COL_ARITH;
+    return COL_FLOW;
+  }
+
+  void drawPalette(GameState g, Level lv) {
+    for (int i = 0; i < BLOCK_ALL.length; i++) {
+      String op = BLOCK_ALL[i];
+      boolean open = lv.blocks.contains(op);
+      float x = 1 + i * 32;
+      float y = 161;
+      int base = open ? blockColor(op) : COL_PANEL_DARK;
+      box(x, y, 30, 17, base);
+      if (!open) {
+        box(x + 1, y + 1, 28, 15, COL_PANEL_DARK);
+        textCenter(shortOf(op), x + 15, y + 9, COL_LOCK, fTiny);
+      } else {
+        textCenter(shortOf(op), x + 15, y + 9, COL_BG2, fTiny);
+      }
+    }
+  }
+
+  String shortOf(String op) {
+    if (op.equals(Block.LONCAT_NOL)) return "L-NOL";
+    if (op.equals(Block.LONCAT_NEG)) return "L-NEG";
+    return op;
+  }
+
+  void drawProgramPanel(GameState g, Level lv) {
+    if (g.program == null) return;
+    panel(198, 32, 118, 112, COL_FLOW);
+    text("PROGRAM", 202, 36, COL_TEXT, fTiny);
+    textRight("SIZE " + g.program.blockCount(), 312, 36, g.program.blockCount() <= lv.sizeTarget ? COL_GOLD : COL_WARN, fTiny);
+
+    int start = g.program.scroll;
+    for (int r = 0; r < Program.VISIBLE_ROWS; r++) {
+      int idx = start + r;
+      if (idx >= g.program.blocks.size()) break;
+      float y = 40 + r * 8;
+      Block b = g.program.blocks.get(idx);
+      boolean sel = idx == g.program.selected;
+      boolean active = g.vm != null && g.vm.activeIndex == idx;
+      int bg = active ? COL_GOLD : (sel ? COL_PANEL_HI : COL_PANEL_DARK);
+      box(200, y, 114, 7, bg);
+      int tc = active ? COL_BG2 : COL_TEXT;
+      text(b.display(), 203, y + 3.5f, tc, fTiny);
+      textRight(Integer.toString(idx + 1), 312, y + 3.5f, active ? COL_BG2 : COL_MUTED, fTiny);
+    }
+
+    if (start > 0) textCenter("^", 312, 39, COL_MUTED, fTiny);
+    if (start + Program.VISIBLE_ROWS < g.program.blocks.size()) {
+      textCenter("v", 312, 133, COL_MUTED, fTiny);
+    }
+    text("LANGKAH " + (g.vm != null ? g.vm.steps : 0), 202, 139, COL_MUTED, fTiny);
+  }
+
+  void drawResult(GameState g) {
+    p.fill(10, 12, 20, 225);
+    p.rect(0, 0, 320, 180);
+    panel(40, 38, 240, 104, g.resultPass ? COL_MEM : COL_WARN);
+    textCenter(g.resultTitle, 160, 50, g.resultPass ? COL_MEM : COL_WARN, fMid);
+
+    p.textFont(fTiny);
+    p.fill(COL_TEXT);
+    p.textAlign(p.CENTER, p.TOP);
+    p.text(g.resultMessage, 52, 62, 216, 26);
+
+    starRow(160, 90, g.earnedStars, 8, 6);
+
+    button(76, 108, 72, 16, g.resultPass ? "LANJUT" : "ULANGI", COL_BLUE);
+    button(172, 108, 64, 16, "PILIH LEVEL", COL_PANEL_HI);
+  }
+
+  // ---------- input ----------
+
+  void mousePressed(GameState g, float x, float y, int mb) {
+    if (g.screen == GameState.MENU) {
+      if (hit(x, y, 96, 70, 128, 16)) {
+        g.startContinue();
+      } else if (hit(x, y, 96, 90, 128, 16)) {
+        g.openTutorial();
+      } else if (hit(x, y, 96, 110, 128, 16)) {
+        g.openSelect();
+      } else if (hit(x, y, 96, 130, 128, 16)) {
+        g.quit();
+      }
+      return;
+    }
+
+    if (g.screen == GameState.TUTORIAL) {
+      if (hit(x, y, 2, 2, 12, 10)) {
+        g.openMenu();
+      } else if (hit(x, y, 6, 146, 54, 18)) {
+        if (g.tutorialPage == 0) g.openMenu();
+        else g.tutorialPrev();
+      } else if (hit(x, y, 112, 146, 64, 18)) {
+        g.skipTutorial();
+      } else if (hit(x, y, 220, 146, 94, 18)) {
+        g.tutorialNext();
+      }
+      return;
+    }
+
+    if (g.screen == GameState.SELECT) {
+      if (hit(x, y, 2, 2, 12, 10)) {
+        g.openMenu();
+        return;
+      }
+      for (int i = 0; i < g.levelCount; i++) {
+        int col = i % 5;
+        int row = i / 5;
+        float tx = 12 + col * 60;
+        float ty = 44 + row * 58;
+        if (hit(x, y, tx, ty, 56, 50)) {
+          g.startLevel(i);
+          return;
+        }
+      }
+      return;
+    }
+
+    if (g.screen != GameState.PLAY) return;
+
+    if (g.helpShown) {
+      if (hit(x, y, 254, 145, 38, 13)) {
+        g.helpShown = false;
+      }
+      return;
+    }
+
+    if (g.resultShown) {
+      if (hit(x, y, 76, 108, 72, 16)) {
+        if (g.resultPass) g.continueNext();
+        else g.resetRun();
+      } else if (hit(x, y, 172, 108, 64, 16)) {
+        g.openSelect();
+      }
+      return;
+    }
+
+    if (hit(x, y, 2, 2, 12, 10)) {
+      g.openSelect();
+      return;
+    }
+    if (hit(x, y, 306, 2, 12, 10)) {
+      g.helpShown = true;
+      return;
+    }
+
+    if (hit(x, y, 4, 145, 46, 12)) { g.run(); return; }
+    if (hit(x, y, 52, 145, 28, 12)) { g.pause(); return; }
+    if (hit(x, y, 82, 145, 38, 12)) { g.stepOnce(); return; }
+    if (hit(x, y, 122, 145, 28, 12)) { g.resetRun(); return; }
+    if (hit(x, y, 152, 145, 38, 12)) { g.toggleSpeed(); return; }
+
+    for (int i = 0; i < BLOCK_ALL.length; i++) {
+      float px = 1 + i * 32;
+      if (hit(x, y, px, 161, 30, 17)) {
+        g.addBlock(BLOCK_ALL[i]);
+        return;
+      }
+    }
+
+    if (x >= 200 && x < 314 && y >= 40 && y < 40 + Program.VISIBLE_ROWS * 8 && g.program != null) {
+      int row = (int) ((y - 40) / 8);
+      int idx = g.program.scroll + row;
+      if (idx >= 0 && idx < g.program.blocks.size()) {
+        if (mb == p.RIGHT) {
+          g.removeBlock(idx);
+        } else {
+          g.selectBlock(idx);
+        }
+      }
+    }
+  }
+
+  void keyPressed(GameState g) {
+    if (g.screen == GameState.TUTORIAL) {
+      if (p.keyCode == K_ESC) g.openMenu();
+      else if (p.keyCode == K_LEFT) g.tutorialPrev();
+      else if (p.keyCode == K_RIGHT || p.keyCode == K_ENTER || p.keyCode == K_RETURN) g.tutorialNext();
+      return;
+    }
+    if (g.screen == GameState.SELECT) {
+      if (p.keyCode == K_ESC) g.openMenu();
+      return;
+    }
+    if (g.screen != GameState.PLAY) return;
+
+    if (g.helpShown) {
+      if (p.keyCode == K_ESC || p.keyCode == K_RETURN || p.keyCode == K_ENTER) {
+        g.helpShown = false;
+      }
+      return;
+    }
+
+    if (p.key == '?') {
+      g.helpShown = true;
+      return;
+    }
+
+    if (g.resultShown) {
+      if (p.keyCode == K_ENTER || p.keyCode == K_RETURN) {
+        if (g.resultPass) g.continueNext();
+        else g.resetRun();
+      } else if (p.keyCode == K_ESC) {
+        g.openSelect();
+      }
+      return;
+    }
+
+    if (p.keyCode == K_ESC) { g.openSelect(); return; }
+    if (p.keyCode == K_DELETE || p.keyCode == K_BACKSPACE) { g.removeSelected(); return; }
+    if (p.keyCode == K_UP) { g.moveSelected(-1); return; }
+    if (p.keyCode == K_DOWN) { g.moveSelected(1); return; }
+    if (p.keyCode == K_ENTER || p.keyCode == K_RETURN) { g.run(); return; }
+    if (p.key == ' ') { g.stepOnce(); return; }
+  }
+}

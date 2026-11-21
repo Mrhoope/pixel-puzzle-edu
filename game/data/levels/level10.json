@@ -1,0 +1,17 @@
+{
+  "id": 10,
+  "title": "Mesin Pengali",
+  "concept": "Gabungan semua konsep",
+  "brief": "Kalikan dua angka. Gunakan penjumlahan berulang untuk mendapat hasil.",
+  "memorySize": 4,
+  "initialMemory": [0, 0, 0, 1],
+  "availableBlocks": ["AMBIL", "TARUH", "SIMPAN", "MUAT", "TAMBAH", "KURANG", "LABEL", "LONCAT", "LONCAT JIKA NOL", "LONCAT JIKA NEGATIF"],
+  "runLimit": 600,
+  "sizeTarget": 17,
+  "speedTarget": 80,
+  "tests": [
+    { "inbox": [3, 4], "expected": [12] },
+    { "inbox": [5, 0], "expected": [0] },
+    { "inbox": [0, 7], "expected": [0] }
+  ]
+}
