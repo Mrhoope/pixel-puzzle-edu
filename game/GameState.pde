@@ -33,6 +33,7 @@ class GameState {
 
   boolean resultShown = false;
   boolean helpShown = false;
+  int hintStage = 0;
   boolean resultPass = false;
   String resultTitle = "";
   String resultMessage = "";
@@ -131,6 +132,7 @@ class GameState {
     running = false;
     resultShown = false;
     helpShown = false;
+    hintStage = 0;
     screen = MENU;
   }
 
@@ -139,6 +141,7 @@ class GameState {
     running = false;
     resultShown = false;
     helpShown = false;
+    hintStage = 0;
     screen = SELECT;
   }
 
@@ -147,6 +150,7 @@ class GameState {
     running = false;
     resultShown = false;
     helpShown = false;
+    hintStage = 0;
     tutorialPage = 0;
     screen = TUTORIAL;
   }
@@ -194,6 +198,7 @@ class GameState {
     }
     currentLevel = idx;
     helpShown = false;
+    hintStage = 0;
     program = new Program();
     String saved = savedPrograms[levels[idx].id];
     if (saved != null && saved.length() > 0) {

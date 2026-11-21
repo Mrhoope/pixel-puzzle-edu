@@ -28,9 +28,10 @@ Penting: nama folder sketch harus `game` dan file utama harus `game.pde`. Jangan
 | Kembali | Tombol `<` atau Esc |
 | Navigasi tutorial | Tombol `< KEMBALI`, `LANJUT >`, panah kiri/kanan, atau Esc |
 | Bantuan blok | Tombol `?` di pojok kanan atas setiap level |
+| Hint solusi | Tombol ikon lampu di samping `?`; pilih BUKA untuk melihat penjelasan dan urutan blok |
 
 Tutorial menjelaskan AMBIL, TARUH, SIMPAN, MUAT, TAMBAH, KURANG, LABEL, LONCAT, L-NOL, dan L-NEG dengan contoh.
-Setiap level menampilkan tujuan dengan bahasa sederhana dan contoh INBOX → OUTBOX dari soal uji. Latar menu memiliki partikel pixel yang bergerak. Di layar permainan, tekstur pixel halus menyatu di seluruh latar; panel INBOX, OUTBOX, TANGAN, MEMORI, dan PROGRAM memakai bingkai bertingkat dengan warna sesuai kategori. Robot memiliki animasi idle; palet blok memakai tab berwarna sesuai kategori.
+Setiap level menampilkan tujuan dengan bahasa sederhana dan contoh INBOX → OUTBOX dari soal uji. Latar menu memiliki partikel pixel yang bergerak, judul dengan font bitmap pixel tebal, dan tombol pixel berbingkai sederhana. Di layar permainan, tekstur pixel halus menyatu di seluruh latar; panel INBOX, OUTBOX, TANGAN, MEMORI, dan PROGRAM memakai bingkai bertingkat dengan warna sesuai kategori. Robot memiliki animasi idle; palet blok memakai tab berwarna sesuai kategori.
 Layar pilih level menampilkan progres level terbuka, status SIAP/SELESAI/KUNCI, dan bintang pada setiap kartu level.
 
 ## Struktur

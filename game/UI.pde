@@ -66,29 +66,25 @@ class UI {
   }
 
   void panel(float x, float y, float w, float h, int border) {
-    p.noStroke();
-    p.fill(border);
-    p.rect(x, y, w, h);
-    p.fill(COL_PANEL);
-    p.rect(x + 1, y + 1, w - 2, h - 2);
+    box(x, y, w, h, border);
+    box(x + 1, y + 1, w - 2, h - 2, COL_PANEL);
+    box(x + 2, y + 2, w - 4, h - 4, 0xFF22263A);
+    box(x + 2, y + 2, w - 4, 2, border);
   }
 
   void panelDark(float x, float y, float w, float h, int border) {
-    p.noStroke();
-    p.fill(border);
-    p.rect(x, y, w, h);
-    p.fill(COL_PANEL_DARK);
-    p.rect(x + 1, y + 1, w - 2, h - 2);
+    box(x, y, w, h, border);
+    box(x + 1, y + 1, w - 2, h - 2, COL_PANEL_DARK);
+    box(x + 2, y + 2, w - 4, h - 4, 0xFF191D2D);
+    box(x + 2, y + 2, w - 4, 1, border);
   }
 
   void panelCard(float x, float y, float w, float h, int accent) {
-    box(x + 1, y + 2, w, h, 0x50202A45);
     box(x, y, w, h, accent);
     box(x + 1, y + 1, w - 2, h - 2, COL_PANEL);
-    box(x + 2, y + 2, w - 4, h - 4, 0xF022263A);
-    box(x + 2, y + 2, w - 4, 7, p.lerpColor(COL_PANEL, accent, 0.18f));
+    box(x + 2, y + 2, w - 4, h - 4, 0xFF22263A);
+    box(x + 2, y + 2, w - 4, 6, p.lerpColor(COL_PANEL, accent, 0.12f));
     box(x + 2, y + 8, w - 4, 1, accent);
-    box(x + 2, y + 2, 1, 2, COL_WHITE);
   }
 
   void text(String s, float x, float y, int c, PFont f) {
@@ -112,10 +108,61 @@ class UI {
     p.text(s, x, y);
   }
 
+  void drawPixelText(String s, float centerX, float centerY, int c, int scale) {
+    float width = 0;
+    for (int i = 0; i < s.length(); i++) {
+      width += (s.charAt(i) == ' ' ? 4 : 6) * scale;
+    }
+    if (s.length() > 0) width -= scale;
+
+    float x = centerX - width / 2;
+    float y = centerY - 7 * scale / 2;
+    for (int i = 0; i < s.length(); i++) {
+      char letter = s.charAt(i);
+      int[] rows = pixelGlyph(letter);
+      for (int row = 0; row < rows.length; row++) {
+        for (int col = 0; col < 5; col++) {
+          if ((rows[row] & (1 << (4 - col))) != 0) {
+            box(x + col * scale, y + row * scale, scale, scale, c);
+          }
+        }
+      }
+      x += (letter == ' ' ? 4 : 6) * scale;
+    }
+  }
+
+  int[] pixelGlyph(char letter) {
+    switch (letter) {
+    case 'A': return new int[] {14, 17, 17, 31, 17, 17, 17};
+    case 'D': return new int[] {30, 17, 17, 17, 17, 17, 30};
+    case 'E': return new int[] {31, 16, 16, 30, 16, 16, 31};
+    case 'G': return new int[] {14, 17, 16, 23, 17, 17, 15};
+    case 'I': return new int[] {31, 4, 4, 4, 4, 4, 31};
+    case 'K': return new int[] {17, 18, 20, 24, 20, 18, 17};
+    case 'L': return new int[] {16, 16, 16, 16, 16, 16, 31};
+    case 'M': return new int[] {17, 27, 21, 21, 17, 17, 17};
+    case 'O': return new int[] {14, 17, 17, 17, 17, 17, 14};
+    case 'P': return new int[] {30, 17, 17, 30, 16, 16, 16};
+    case 'R': return new int[] {30, 17, 17, 30, 20, 18, 17};
+    case 'S': return new int[] {15, 16, 16, 14, 1, 1, 30};
+    case 'T': return new int[] {31, 4, 4, 4, 4, 4, 4};
+    case 'U': return new int[] {17, 17, 17, 17, 17, 17, 14};
+    case 'X': return new int[] {17, 17, 10, 4, 10, 17, 17};
+    case 'Z': return new int[] {31, 1, 2, 4, 8, 16, 31};
+    default: return new int[] {0, 0, 0, 0, 0, 0, 0};
+    }
+  }
+
   void button(float x, float y, float w, float h, String s, int base) {
     boolean hover = mx >= x && mx < x + w && my >= y && my < y + h;
-    box(x, y, w, h, hover ? COL_PANEL_HI : base);
-    textCenter(s, x + w / 2, y + h / 2 + 0.5f, COL_TEXT, fTiny);
+    int edge = hover ? COL_GOLD : COL_LOCK;
+    int face = hover ? p.lerpColor(base, COL_WHITE, 0.1f) : base;
+    box(x, y, w, h, edge);
+    box(x + 1, y + 1, w - 2, h - 2, face);
+    box(x + 1, y + 1, w - 2, 1, p.lerpColor(face, COL_WHITE, 0.2f));
+    box(x + 1, y + h - 2, w - 2, 1, COL_BG2);
+    if (hover && w > 16) box(x + 1, y + 2, 2, h - 4, COL_GOLD);
+    textCenter(s, x + w / 2, y + h / 2, COL_TEXT, fTiny);
   }
 
   boolean hit(float x, float y, float rx, float ry, float rw, float rh) {
@@ -143,8 +190,9 @@ class UI {
       if (i % 3 == 0) box(312 - x, 176 - y, 2, 2, COL_PANEL_HI);
     }
 
-    textCenter("PIXEL PUZZLE", 160, 38, COL_GOLD, fBig);
-    textCenter("Edukasi Algoritmik", 160, 54, COL_MUTED, fSmall);
+    drawPixelText("PIXEL PUZZLE", 160, 38, COL_GOLD, 2);
+    drawPixelText("EDUKASI ALGORITMIK", 160, 54, COL_IO, 1);
+    box(136, 62, 48, 1, COL_BLUE);
 
     button(96, 70, 128, 16, "MULAI", COL_BLUE);
     button(96, 90, 128, 16, "TUTORIAL", COL_FLOW);
@@ -520,7 +568,8 @@ class UI {
     backButton();
     text("LEVEL " + lv.id + "  " + lv.title, 20, 7, COL_TEXT, fSmall);
     textRight("SIZE " + lv.sizeTarget + "  SPEED " + lv.speedTarget, 288, 7, COL_MUTED, fTiny);
-    button(306, 2, 12, 10, "?", COL_FLOW);
+    drawPixelIconButton(292, 2, true);
+    drawPixelIconButton(306, 2, false);
 
     panelDark(0, 14, 320, 18, COL_PANEL_HI);
     p.textFont(fTiny);
@@ -546,6 +595,124 @@ class UI {
 
     if (g.resultShown) drawResult(g);
     if (g.helpShown) drawBlockHelp(g, lv);
+    if (g.hintStage > 0) drawHint(g, lv);
+  }
+
+  void drawPixelIconButton(float x, float y, boolean hint) {
+    int accent = hint ? COL_GOLD : COL_FLOW;
+    boolean hover = hit(mx, my, x, y, 12, 10);
+    box(x, y, 12, 10, hover ? accent : COL_LOCK);
+    box(x + 1, y + 1, 10, 8, COL_BG2);
+    box(x + 2, y + 2, 8, 6, COL_PANEL);
+
+    if (hint) {
+      box(x + 4, y + 2, 4, 1, accent);
+      box(x + 3, y + 3, 1, 2, accent);
+      box(x + 8, y + 3, 1, 2, accent);
+      box(x + 4, y + 5, 4, 1, accent);
+      box(x + 5, y + 6, 2, 1, accent);
+      box(x + 5, y + 7, 2, 1, accent);
+    } else {
+      box(x + 4, y + 2, 4, 1, accent);
+      box(x + 8, y + 3, 1, 1, accent);
+      box(x + 7, y + 4, 1, 1, accent);
+      box(x + 6, y + 5, 1, 2, accent);
+      box(x + 6, y + 8, 1, 1, accent);
+    }
+  }
+
+  void drawHint(GameState g, Level lv) {
+    p.fill(10, 12, 20, 230);
+    p.rect(0, 0, 320, 180);
+
+    if (g.hintStage == 1) {
+      panel(28, 48, 264, 84, COL_GOLD);
+      textCenter("BUKA HINT LEVEL " + lv.id + "?", 160, 62, COL_GOLD, fSmall);
+      textCenter("Yakin mau lihat hint?", 160, 78, COL_TEXT, fSmall);
+      textCenter("Gini doang gak paham?", 160, 90, COL_MUTED, fTiny);
+      button(76, 104, 72, 18, "BUKA", COL_BLUE);
+      button(172, 104, 72, 18, "TIDAK", COL_PANEL_HI);
+      return;
+    }
+
+    panel(6, 8, 308, 164, COL_GOLD);
+    text("SOLUSI LEVEL " + lv.id, 14, 17, COL_GOLD, fSmall);
+
+    p.textFont(fTiny);
+    p.fill(COL_TEXT);
+    p.textAlign(p.LEFT, p.TOP);
+    p.text(hintExplanation(lv.id), 14, 26, 292, 22);
+    text("URUTAN PROGRAM", 14, 52, COL_IO, fTiny);
+
+    String[] blocks = hintProgram(lv.id);
+    if (blocks.length == 0) {
+      text("Hint untuk level ini belum tersedia.", 14, 70, COL_WARN, fTiny);
+    } else {
+      int leftCount = (blocks.length + 1) / 2;
+      for (int i = 0; i < leftCount; i++) {
+        text((i + 1) + ". " + blocks[i], 14, 63 + i * 8, COL_TEXT, fTiny);
+      }
+      for (int i = leftCount; i < blocks.length; i++) {
+        int row = i - leftCount;
+        text((i + 1) + ". " + blocks[i], 164, 63 + row * 8, COL_TEXT, fTiny);
+      }
+    }
+
+    text("Tambah blok dari atas ke bawah. Hint tidak mengubah programmu.", 14, 143, COL_MUTED, fTiny);
+    button(268, 151, 38, 13, "TUTUP", COL_BLUE);
+  }
+
+  String hintExplanation(int levelId) {
+    if (levelId == 1) return "Ambil satu angka, lalu taruh ke OUTBOX. Ulangi sampai INBOX habis.";
+    if (levelId == 2) return "Susun AMBIL lalu TARUH sebanyak delapan kali untuk delapan angka.";
+    if (levelId == 3) return "Simpan angka pertama di memori 0. Keluarkan angka kedua, lalu muat angka pertama.";
+    if (levelId == 4) return "Simpan angka pertama di memori 0. Ambil angka kedua, tambahkan memori 0, lalu taruh hasil.";
+    if (levelId == 5) return "LABEL 0 menandai awal. Tambahkan angka itu dengan salinannya, taruh hasil, lalu ulangi.";
+    if (levelId == 6) return "Memori 0 menyimpan total. Tambahkan tiap angka baru ke total, lalu keluarkan totalnya.";
+    if (levelId == 7) return "Jika angka nol, lompat melewati TARUH. Jika tidak nol, taruh. Ulangi untuk angka berikutnya.";
+    if (levelId == 8) return "Lewati angka nol dan negatif. Hanya angka positif yang melewati blok TARUH.";
+    if (levelId == 9) return "Memori 2 berisi angka 1. Simpan N di memori 1, keluarkan N, lalu kurangi hitungan sampai 0.";
+    if (levelId == 10) return "Simpan A di memori 0 dan B di 1. Tambahkan A ke total di memori 2, kurangi B dengan memori 3 (angka 1), lalu ulangi sampai B nol.";
+    return "";
+  }
+
+  String[] hintProgram(int levelId) {
+    if (levelId == 1) {
+      return new String[] {"AMBIL", "TARUH", "AMBIL", "TARUH", "AMBIL", "TARUH"};
+    }
+    if (levelId == 2) {
+      String[] blocks = new String[16];
+      for (int i = 0; i < 8; i++) {
+        blocks[i * 2] = "AMBIL";
+        blocks[i * 2 + 1] = "TARUH";
+      }
+      return blocks;
+    }
+    if (levelId == 3) {
+      return new String[] {"AMBIL", "SIMPAN 0", "AMBIL", "TARUH", "MUAT 0", "TARUH"};
+    }
+    if (levelId == 4) {
+      return new String[] {"AMBIL", "SIMPAN 0", "AMBIL", "TAMBAH 0", "TARUH"};
+    }
+    if (levelId == 5) {
+      return new String[] {"LABEL 0", "AMBIL", "SIMPAN 0", "TAMBAH 0", "TARUH", "LONCAT 0"};
+    }
+    if (levelId == 6) {
+      return new String[] {"LABEL 0", "AMBIL", "SIMPAN 1", "MUAT 0", "TAMBAH 1", "SIMPAN 0", "TARUH", "LONCAT 0"};
+    }
+    if (levelId == 7) {
+      return new String[] {"LABEL 0", "AMBIL", "LONCAT JIKA NOL 1", "TARUH", "LONCAT 0", "LABEL 1", "LONCAT 0"};
+    }
+    if (levelId == 8) {
+      return new String[] {"LABEL 0", "AMBIL", "LONCAT JIKA NOL 1", "LONCAT JIKA NEGATIF 1", "TARUH", "LONCAT 0", "LABEL 1", "LONCAT 0"};
+    }
+    if (levelId == 9) {
+      return new String[] {"LABEL 0", "AMBIL", "SIMPAN 1", "LABEL 1", "MUAT 1", "LONCAT JIKA NOL 2", "TARUH", "MUAT 1", "KURANG 2", "SIMPAN 1", "LONCAT 1", "LABEL 2", "LONCAT 0"};
+    }
+    if (levelId == 10) {
+      return new String[] {"AMBIL", "SIMPAN 0", "AMBIL", "SIMPAN 1", "LABEL 0", "MUAT 1", "LONCAT JIKA NOL 1", "MUAT 2", "TAMBAH 0", "SIMPAN 2", "MUAT 1", "KURANG 3", "SIMPAN 1", "LONCAT 0", "LABEL 1", "MUAT 2", "TARUH"};
+    }
+    return new String[0];
   }
 
   void drawPlayBackground() {
@@ -851,6 +1018,19 @@ class UI {
 
     if (g.screen != GameState.PLAY) return;
 
+    if (g.hintStage > 0) {
+      if (g.hintStage == 1) {
+        if (hit(x, y, 76, 104, 72, 18)) {
+          g.hintStage = 2;
+        } else if (hit(x, y, 172, 104, 72, 18)) {
+          g.hintStage = 0;
+        }
+      } else if (hit(x, y, 268, 151, 38, 13)) {
+        g.hintStage = 0;
+      }
+      return;
+    }
+
     if (g.helpShown) {
       if (hit(x, y, 254, 145, 38, 13)) {
         g.helpShown = false;
@@ -870,6 +1050,11 @@ class UI {
 
     if (hit(x, y, 2, 2, 12, 10)) {
       g.openSelect();
+      return;
+    }
+    if (hit(x, y, 292, 2, 12, 10)) {
+      g.running = false;
+      g.hintStage = 1;
       return;
     }
     if (hit(x, y, 306, 2, 12, 10)) {
@@ -916,6 +1101,12 @@ class UI {
       return;
     }
     if (g.screen != GameState.PLAY) return;
+
+    if (g.hintStage > 0) {
+      if (p.keyCode == K_ESC) g.hintStage = 0;
+      else if (g.hintStage == 1 && (p.keyCode == K_ENTER || p.keyCode == K_RETURN)) g.hintStage = 2;
+      return;
+    }
 
     if (g.helpShown) {
       if (p.keyCode == K_ESC || p.keyCode == K_RETURN || p.keyCode == K_ENTER) {
