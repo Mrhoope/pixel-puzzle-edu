@@ -2,7 +2,7 @@
 
 Puzzle edukasi pixel 2D untuk belajar berpikir algoritmik. Pemain menyusun program dari blok instruksi, lalu karakter menjalankannya langkah demi langkah. Dibuat dengan Processing (Java), 10 level, offline.
 
-Status: **kerangka v0.1** - struktur, menu, pilih level, editor blok (klik), interpreter 10 opcode, validasi multi-tes, dan simpan progres sudah berjalan. Visual masih placeholder.
+Status: **kerangka v0.1** - struktur, menu, pilih level, editor blok (klik), interpreter 10 opcode, validasi multi-tes, dan simpan progres sudah berjalan. Visual memakai gaya pixel dengan animasi idle robot sederhana.
 
 ## Menjalankan
 
@@ -30,7 +30,8 @@ Penting: nama folder sketch harus `game` dan file utama harus `game.pde`. Jangan
 | Bantuan blok | Tombol `?` di pojok kanan atas setiap level |
 
 Tutorial menjelaskan AMBIL, TARUH, SIMPAN, MUAT, TAMBAH, KURANG, LABEL, LONCAT, L-NOL, dan L-NEG dengan contoh.
-Setiap level menampilkan tujuan dengan bahasa sederhana dan contoh INBOX → OUTBOX dari soal uji. Latar menu memiliki partikel pixel yang bergerak.
+Setiap level menampilkan tujuan dengan bahasa sederhana dan contoh INBOX → OUTBOX dari soal uji. Latar menu memiliki partikel pixel yang bergerak. Di layar permainan, tekstur pixel halus menyatu di seluruh latar; panel INBOX, OUTBOX, TANGAN, MEMORI, dan PROGRAM memakai bingkai bertingkat dengan warna sesuai kategori. Robot memiliki animasi idle; palet blok memakai tab berwarna sesuai kategori.
+Layar pilih level menampilkan progres level terbuka, status SIAP/SELESAI/KUNCI, dan bintang pada setiap kartu level.
 
 ## Struktur
 
@@ -95,7 +96,7 @@ Semua kelas murni Java dan hanya `Interpreter` yang mengubah state permainan; UI
 ## Belum dikerjakan
 
 - Seret-dan-lepas penuh (sekarang klik untuk menambah; sesuai mitigasi risiko PRD).
-- Sprite pixel 16x16, font pixel, animasi karakter.
+- Sprite pixel 16x16 dan font pixel final (robot saat ini masih memakai sprite geometris).
 - F9 hint bertahap dan F10 audio.
 - Layar "menang" terpisah dan transisi.
 - Uji pemain dan penyetelan target Size/Speed.

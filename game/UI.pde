@@ -81,6 +81,16 @@ class UI {
     p.rect(x + 1, y + 1, w - 2, h - 2);
   }
 
+  void panelCard(float x, float y, float w, float h, int accent) {
+    box(x + 1, y + 2, w, h, 0x50202A45);
+    box(x, y, w, h, accent);
+    box(x + 1, y + 1, w - 2, h - 2, COL_PANEL);
+    box(x + 2, y + 2, w - 4, h - 4, 0xF022263A);
+    box(x + 2, y + 2, w - 4, 7, p.lerpColor(COL_PANEL, accent, 0.18f));
+    box(x + 2, y + 8, w - 4, 1, accent);
+    box(x + 2, y + 2, 1, 2, COL_WHITE);
+  }
+
   void text(String s, float x, float y, int c, PFont f) {
     p.textFont(f);
     p.fill(c);
@@ -393,40 +403,94 @@ class UI {
 
   void renderSelect(GameState g) {
     box(0, 0, 320, 180, COL_BG);
+    drawSelectBackground();
     box(0, 0, 320, 14, COL_PANEL);
     backButton();
     text("PILIH LEVEL", 20, 7, COL_TEXT, fSmall);
-    textRight("BINTANG: " + totalStars(g) + "/30", 312, 7, COL_MUTED, fTiny);
+    textRight("BINTANG " + totalStars(g) + "/" + (g.levelCount * 3), 312, 7, COL_GOLD, fTiny);
 
     for (int i = 0; i < g.levelCount; i++) {
-      Level lv = g.levels[i];
-      int col = i % 5;
-      int row = i / 5;
-      float x = 12 + col * 60;
-      float y = 44 + row * 58;
-      float w = 56;
-      float h = 50;
-      boolean locked = (i + 1) > g.unlocked;
-      boolean hover = hit(mx, my, x, y, w, h);
-
-      if (locked) {
-        box(x, y, w, h, COL_LOCK);
-        box(x + 1, y + 1, w - 2, h - 2, COL_PANEL_DARK);
-        textCenter("TERKUNCI", x + w / 2, y + h / 2, COL_LOCK, fTiny);
-        textCenter(String.format("%02d", lv.id), x + w / 2, y + 12, COL_LOCK, fSmall);
-      } else {
-        box(x, y, w, h, hover ? COL_BLUE : COL_PANEL);
-        box(x, y, w, 2, COL_BLUE);
-        text(String.format("%02d", lv.id), x + 4, y + 11, COL_MUTED, fTiny);
-        String title = lv.title;
-        if (title.length() > 12) title = title.substring(0, 12);
-        textCenter(title, x + w / 2, y + 22, COL_TEXT, fTiny);
-        textCenter(lv.concept, x + w / 2, y + 32, COL_MUTED, fTiny);
-        starRow(x + w / 2, y + 42, g.stars[lv.id], 4, 6);
-      }
+      drawLevelCard(g, i);
     }
 
-    text("Pilih level yang terbuka. Klik kanan di panel program untuk menghapus blok.", 8, 172, COL_MUTED, fTiny);
+    int openLevels = Math.min(g.unlocked, g.levelCount);
+    text("LEVEL TERBUKA " + openLevels + "/" + g.levelCount, 12, 21, COL_TEXT, fTiny);
+    box(12, 27, 296, 3, COL_PANEL_DARK);
+    if (g.levelCount > 0) {
+      float progressWidth = 296 * (openLevels / (float) g.levelCount);
+      box(12, 27, progressWidth, 3, COL_BLUE);
+      box(12, 27, progressWidth, 1, COL_IO);
+    }
+
+    text("Pilih kartu bertanda SIAP atau SELESAI untuk bermain.", 12, 164, COL_MUTED, fTiny);
+  }
+
+  void drawSelectBackground() {
+    for (int y = 16; y < 180; y += 16) {
+      box(0, y, 320, 1, 0x182B2F45);
+    }
+    for (int x = 16; x < 320; x += 16) {
+      box(x, 16, 1, 164, 0x102B2F45);
+    }
+    for (int row = 0; row < 10; row++) {
+      for (int col = 0; col < 20; col++) {
+        if ((row * 5 + col * 7) % 19 == 0) {
+          box(5 + col * 16, 19 + row * 16, 2, 2, 0x303B4060);
+        }
+      }
+    }
+  }
+
+  void drawLevelCard(GameState g, int index) {
+    Level lv = g.levels[index];
+    float x = levelCardX(index);
+    float y = levelCardY(index);
+    boolean locked = index + 1 > g.unlocked;
+    boolean complete = g.stars[lv.id] > 0;
+    boolean hover = !locked && hit(mx, my, x, y, 56, 52);
+
+    int accent = locked ? COL_LOCK : (complete ? COL_GOLD : levelAccent(lv));
+    if (hover) accent = p.lerpColor(accent, COL_WHITE, 0.18f);
+    int face = locked ? 0xFF1D2132 : (hover ? 0xFF2E344C : 0xFF24293C);
+
+    box(x + 1, y + 2, 56, 52, 0x50202A45);
+    box(x, y, 56, 52, accent);
+    box(x + 1, y + 1, 54, 50, COL_PANEL);
+    box(x + 2, y + 2, 52, 48, face);
+    box(x + 2, y + 2, 52, 3, accent);
+    box(x + 2, y + 2, 1, 1, COL_WHITE);
+
+    int labelColor = locked ? COL_LOCK : COL_TEXT;
+    text(String.format("%02d", lv.id), x + 5, y + 9, labelColor, fTiny);
+    String status = locked ? "KUNCI" : (complete ? "SELESAI" : "SIAP");
+    int statusColor = locked ? COL_LOCK : (complete ? COL_GOLD : COL_IO);
+    textRight(status, x + 52, y + 9, statusColor, fTiny);
+
+    String title = shorten(lv.title, 12);
+    String concept = shorten(lv.concept, 12);
+    textCenter(title, x + 28, y + 22, locked ? COL_LOCK : COL_TEXT, fTiny);
+    textCenter(concept, x + 28, y + 32, locked ? COL_LOCK : COL_MUTED, fTiny);
+    starRow(x + 28, y + 43, locked ? 0 : g.stars[lv.id], 4, 4);
+  }
+
+  float levelCardX(int index) {
+    return 12 + (index % 5) * 60;
+  }
+
+  float levelCardY(int index) {
+    return 38 + (index / 5) * 58;
+  }
+
+  int levelAccent(Level lv) {
+    if (lv.blocks.contains(Block.LONCAT) || lv.blocks.contains(Block.LONCAT_NOL)) return COL_FLOW;
+    if (lv.blocks.contains(Block.TAMBAH) || lv.blocks.contains(Block.KURANG)) return COL_ARITH;
+    if (lv.blocks.contains(Block.SIMPAN) || lv.blocks.contains(Block.MUAT)) return COL_MEM;
+    return COL_IO;
+  }
+
+  String shorten(String value, int maxLength) {
+    if (value.length() <= maxLength) return value;
+    return value.substring(0, maxLength - 1) + ".";
   }
 
   void starRow(float cx, float y, int n, float size, float gap) {
@@ -440,7 +504,7 @@ class UI {
 
   int totalStars(GameState g) {
     int total = 0;
-    for (int i = 1; i <= 10; i++) total += g.stars[i];
+    for (int i = 1; i <= g.levelCount; i++) total += g.stars[i];
     return total;
   }
 
@@ -448,6 +512,7 @@ class UI {
 
   void renderPlay(GameState g) {
     box(0, 0, 320, 180, COL_BG);
+    drawPlayBackground();
     if (g.currentLevel < 0 || g.currentLevel >= g.levelCount) return;
     Level lv = g.levels[g.currentLevel];
 
@@ -481,6 +546,25 @@ class UI {
 
     if (g.resultShown) drawResult(g);
     if (g.helpShown) drawBlockHelp(g, lv);
+  }
+
+  void drawPlayBackground() {
+    for (int row = 0; row < 23; row++) {
+      for (int col = 0; col < 40; col++) {
+        int pattern = (row * 7 + col * 11) % 19;
+        float x = col * 8 + 2;
+        float y = row * 8 + 2;
+        if (pattern == 0) {
+          box(x, y, 2, 2, 0x202B2F45);
+        } else if (pattern == 1) {
+          box(x + 2, y + 1, 1, 1, 0x303B4060);
+        }
+      }
+    }
+
+    int phase = p.millis() / 35;
+    box(10 + phase % 300, 8 + (phase / 12) % 164, 1, 1, 0x704FC3F7);
+    box(12 + (phase * 2) % 296, 4 + (phase / 20) % 172, 1, 1, 0x70B07CFF);
   }
 
   String formatValues(int[] values) {
@@ -541,12 +625,14 @@ class UI {
     button(254, 145, 38, 13, "TUTUP", COL_BLUE);
   }
 
-  void drawItems(ArrayList<Integer> items, float x, float y, int maxShow) {
+  void drawItems(ArrayList<Integer> items, float x, float y, int maxShow, int tileColor) {
     int n = Math.min(items.size(), maxShow);
     for (int i = 0; i < n; i++) {
       float ix = x + (i % 9) * 10;
       float iy = y + (i / 9) * 10;
-      box(ix, iy, 9, 9, COL_IO);
+      box(ix + 1, iy + 1, 9, 9, COL_BG2);
+      box(ix, iy, 9, 9, tileColor);
+      box(ix + 1, iy + 1, 7, 1, p.lerpColor(tileColor, COL_WHITE, 0.28f));
       textCenter(Integer.toString(items.get(i)), ix + 4.5f, iy + 5, COL_BG2, fTiny);
     }
     if (items.size() > maxShow) {
@@ -555,29 +641,46 @@ class UI {
   }
 
   void drawInbox(GameState g, float x, float y, float w, float h) {
-    panelDark(x, y, w, h, COL_IO);
+    panelCard(x, y, w, h, COL_IO);
     text("INBOX", x + 3, y + 5, COL_IO, fTiny);
-    if (g.vm != null) drawItems(g.vm.inbox, x + 3, y + 9, 18);
+    if (g.vm != null) drawItems(g.vm.inbox, x + 3, y + 10, 18, COL_IO);
   }
 
   void drawOutbox(GameState g, float x, float y, float w, float h) {
-    panelDark(x, y, w, h, COL_MEM);
+    panelCard(x, y, w, h, COL_MEM);
     text("OUTBOX", x + 3, y + 5, COL_MEM, fTiny);
-    if (g.vm != null) drawItems(g.vm.outbox, x + 3, y + 9, 18);
+    if (g.vm != null) drawItems(g.vm.outbox, x + 3, y + 10, 18, COL_MEM);
   }
 
   void drawRobot(float x, float y) {
-    box(x + 4, y, 8, 2, COL_MEM);
-    box(x + 2, y + 2, 12, 10, COL_MEM);
-    box(x + 4, y + 4, 2, 2, COL_BG2);
-    box(x + 10, y + 4, 2, 2, COL_BG2);
-    box(x + 4, y + 12, 8, 7, COL_BLUE);
-    box(x + 1, y + 13, 2, 4, COL_BLUE);
-    box(x + 13, y + 13, 2, 4, COL_BLUE);
+    int now = p.millis();
+    int bob = (int) Math.round(Math.sin(now * 0.004) * 1.0);
+    boolean blink = now % 3200 > 3070;
+    float ry = y + bob;
+
+    box(x + 4, y + 20, 8, 1, 0x50202A45);
+    box(x + 6, y + 21, 4, 1, 0x30202A45);
+    box(x + 4, ry, 8, 2, (now / 700) % 2 == 0 ? COL_MEM : COL_GOLD);
+    box(x + 2, ry + 2, 12, 10, COL_MEM);
+    box(x + 3, ry + 3, 10, 1, 0xFFB8E986);
+    if (blink) {
+      box(x + 4, ry + 5, 2, 1, COL_BG2);
+      box(x + 10, ry + 5, 2, 1, COL_BG2);
+    } else {
+      box(x + 4, ry + 4, 2, 2, COL_BG2);
+      box(x + 10, ry + 4, 2, 2, COL_BG2);
+      box(x + 4, ry + 4, 1, 1, COL_WHITE);
+      box(x + 10, ry + 4, 1, 1, COL_WHITE);
+    }
+    box(x + 4, ry + 12, 8, 7, COL_BLUE);
+    box(x + 1, ry + 13, 2, 4, COL_BLUE);
+    box(x + 13, ry + 13, 2, 4, COL_BLUE);
+    box(x + 5, ry + 19, 3, 1, COL_GOLD);
+    box(x + 10, ry + 19, 3, 1, COL_GOLD);
   }
 
   void drawHand(GameState g, float x, float y, float w, float h) {
-    panelDark(x, y, w, h, COL_GOLD);
+    panelCard(x, y, w, h, COL_GOLD);
     textCenter("TANGAN", x + w / 2, y + 5, COL_GOLD, fTiny);
     String v = "-";
     if (g.vm != null && g.vm.hand != null) v = g.vm.hand.toString();
@@ -587,12 +690,15 @@ class UI {
   void drawMemory(GameState g, float x, float y, float w, float h) {
     if (g.currentLevel >= g.levelCount) return;
     Level lv = g.levels[g.currentLevel];
-    panelDark(x, y, w, h, COL_MEM);
+    panelCard(x, y, w, h, COL_MEM);
     text("MEMORI", x + 3, y + 5, COL_MEM, fTiny);
     for (int i = 0; i < lv.memorySize && i < 8; i++) {
       float bx = x + 3 + i * 22;
-      float by = y + 9;
-      box(bx, by, 20, 18, COL_PANEL_HI);
+      float by = y + 10;
+      box(bx + 1, by + 1, 20, 18, COL_BG2);
+      box(bx, by, 20, 18, COL_MEM);
+      box(bx + 1, by + 1, 18, 16, COL_PANEL_DARK);
+      box(bx + 1, by + 1, 18, 1, 0xFFB8E986);
       text(Integer.toString(i), bx + 2, by + 3, COL_MUTED, fTiny);
       String val = "0";
       if (g.vm != null && g.vm.memory != null && i < g.vm.memory.length) {
@@ -633,14 +739,17 @@ class UI {
       boolean open = lv.blocks.contains(op);
       float x = 1 + i * 32;
       float y = 161;
-      int base = open ? blockColor(op) : COL_PANEL_DARK;
-      box(x, y, 30, 17, base);
-      if (!open) {
-        box(x + 1, y + 1, 28, 15, COL_PANEL_DARK);
-        textCenter(shortOf(op), x + 15, y + 9, COL_LOCK, fTiny);
-      } else {
-        textCenter(shortOf(op), x + 15, y + 9, COL_BG2, fTiny);
-      }
+      boolean hover = hit(mx, my, x, y, 30, 17);
+      int accent = open ? blockColor(op) : COL_LOCK;
+      int face = open ? (hover ? p.lerpColor(accent, COL_WHITE, 0.16f) : accent) : COL_PANEL_DARK;
+
+      box(x + 1, y + 2, 30, 15, COL_BG2);
+      box(x, y + 1, 30, 16, COL_LOCK);
+      box(x + 1, y + 2, 28, 13, face);
+      box(x + 1, y + 2, 28, 1, open ? COL_WHITE : COL_PANEL_HI);
+      box(x + 1, y + 14, 28, 1, open ? accent : COL_BG2);
+      box(x + 2, y, 8, 2, accent);
+      textCenter(shortOf(op), x + 15, y + 9, open ? COL_BG2 : COL_LOCK, fTiny);
     }
   }
 
@@ -652,7 +761,7 @@ class UI {
 
   void drawProgramPanel(GameState g, Level lv) {
     if (g.program == null) return;
-    panel(198, 32, 118, 112, COL_FLOW);
+    panelCard(198, 32, 118, 112, COL_FLOW);
     text("PROGRAM", 202, 36, COL_TEXT, fTiny);
     textRight("SIZE " + g.program.blockCount(), 312, 36, g.program.blockCount() <= lv.sizeTarget ? COL_GOLD : COL_WARN, fTiny);
 
@@ -666,6 +775,7 @@ class UI {
       boolean active = g.vm != null && g.vm.activeIndex == idx;
       int bg = active ? COL_GOLD : (sel ? COL_PANEL_HI : COL_PANEL_DARK);
       box(200, y, 114, 7, bg);
+      box(200, y, 2, 7, active ? COL_GOLD : blockColor(b.op));
       int tc = active ? COL_BG2 : COL_TEXT;
       text(b.display(), 203, y + 3.5f, tc, fTiny);
       textRight(Integer.toString(idx + 1), 312, y + 3.5f, active ? COL_BG2 : COL_MUTED, fTiny);
@@ -731,11 +841,7 @@ class UI {
         return;
       }
       for (int i = 0; i < g.levelCount; i++) {
-        int col = i % 5;
-        int row = i / 5;
-        float tx = 12 + col * 60;
-        float ty = 44 + row * 58;
-        if (hit(x, y, tx, ty, 56, 50)) {
+        if (hit(x, y, levelCardX(i), levelCardY(i), 56, 52)) {
           g.startLevel(i);
           return;
         }
