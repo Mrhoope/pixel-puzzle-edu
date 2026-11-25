@@ -1,0 +1,17 @@
+{
+  "id": 5,
+  "title": "Putar Terus",
+  "concept": "Perulangan",
+  "brief": "Kalikan setiap angka dengan 2, lalu keluarkan hasilnya.",
+  "memorySize": 1,
+  "initialMemory": [0],
+  "availableBlocks": ["AMBIL", "TARUH", "SIMPAN", "MUAT", "TAMBAH", "KURANG", "LABEL", "LONCAT"],
+  "runLimit": 120,
+  "sizeTarget": 6,
+  "speedTarget": 20,
+  "tests": [
+    { "inbox": [1, 2, 3], "expected": [2, 4, 6] },
+    { "inbox": [5], "expected": [10] },
+    { "inbox": [0, 7], "expected": [0, 14] }
+  ]
+}

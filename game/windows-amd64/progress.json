@@ -1,0 +1,22 @@
+{
+  "tutorialDone": true,
+  "program4": "AMBIL|SIMPAN 0|AMBIL|TAMBAH 0|TARUH",
+  "program5": "LABEL 0|AMBIL|SIMPAN 0|TAMBAH 0|TARUH|LONCAT 0",
+  "program6": "LABEL 0|AMBIL|SIMPAN 1|MUAT 0|TAMBAH 1|SIMPAN 0|TARUH|LONCAT 0",
+  "program1": "AMBIL|TARUH|AMBIL|TARUH|AMBIL|TARUH",
+  "program2": "AMBIL|TARUH|AMBIL|TARUH|AMBIL|TARUH|AMBIL|TARUH|AMBIL|TARUH|AMBIL|TARUH|AMBIL|TARUH|AMBIL|TARUH",
+  "stars": {
+    "1": 3,
+    "2": 3,
+    "3": 3,
+    "4": 3,
+    "5": 3,
+    "6": 3,
+    "7": 0,
+    "8": 0,
+    "9": 0,
+    "10": 0
+  },
+  "program3": "AMBIL|SIMPAN 0|AMBIL|TARUH|MUAT 0|TARUH",
+  "unlocked": 7
+}

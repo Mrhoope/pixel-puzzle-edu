@@ -1,0 +1,17 @@
+{
+  "id": 1,
+  "title": "Antar Paket",
+  "concept": "Urutan",
+  "brief": "Pindahkan semua angka ke OUTBOX dalam urutan yang sama.",
+  "memorySize": 0,
+  "initialMemory": [],
+  "availableBlocks": ["AMBIL", "TARUH"],
+  "runLimit": 60,
+  "sizeTarget": 6,
+  "speedTarget": 6,
+  "tests": [
+    { "inbox": [11, 22, 33], "expected": [11, 22, 33] },
+    { "inbox": [4, 9], "expected": [4, 9] },
+    { "inbox": [7], "expected": [7] }
+  ]
+}

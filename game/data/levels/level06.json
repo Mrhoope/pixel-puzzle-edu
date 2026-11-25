@@ -1,0 +1,17 @@
+{
+  "id": 6,
+  "title": "Total Berjalan",
+  "concept": "Akumulator",
+  "brief": "Keluarkan jumlah berjalan: tambahkan angka baru ke total sebelumnya.",
+  "memorySize": 2,
+  "initialMemory": [0, 0],
+  "availableBlocks": ["AMBIL", "TARUH", "SIMPAN", "MUAT", "TAMBAH", "KURANG", "LABEL", "LONCAT"],
+  "runLimit": 150,
+  "sizeTarget": 8,
+  "speedTarget": 26,
+  "tests": [
+    { "inbox": [1, 2, 3], "expected": [1, 3, 6] },
+    { "inbox": [5], "expected": [5] },
+    { "inbox": [-2, 2], "expected": [-2, 0] }
+  ]
+}

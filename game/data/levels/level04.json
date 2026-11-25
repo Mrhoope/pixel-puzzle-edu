@@ -1,0 +1,17 @@
+{
+  "id": 4,
+  "title": "Hitung Cepat",
+  "concept": "Aritmetika",
+  "brief": "Jumlahkan dua angka dalam setiap pasangan, lalu keluarkan hasilnya.",
+  "memorySize": 1,
+  "initialMemory": [0],
+  "availableBlocks": ["AMBIL", "TARUH", "SIMPAN", "MUAT", "TAMBAH", "KURANG"],
+  "runLimit": 60,
+  "sizeTarget": 5,
+  "speedTarget": 5,
+  "tests": [
+    { "inbox": [3, 4], "expected": [7] },
+    { "inbox": [10, -2], "expected": [8] },
+    { "inbox": [0, 5], "expected": [5] }
+  ]
+}
