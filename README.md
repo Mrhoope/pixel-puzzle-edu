@@ -2,7 +2,7 @@
 
 Puzzle edukasi pixel 2D untuk belajar berpikir algoritmik. Pemain menyusun program dari blok instruksi, lalu karakter menjalankannya langkah demi langkah. Dibuat dengan Processing (Java), 10 level, offline.
 
-Status: **kerangka v0.1** - struktur, menu, pilih level, editor blok (klik), interpreter 10 opcode, validasi multi-tes, dan simpan progres sudah berjalan. Visual memakai gaya pixel dengan animasi idle robot sederhana.
+Status: **kerangka v0.1** - struktur, menu, pilih level, tutorial interaktif per level, editor blok (klik), interpreter 10 opcode, validasi multi-tes, dan simpan progres sudah berjalan. Visual memakai gaya pixel dengan animasi idle robot sederhana.
 
 ## Menjalankan
 

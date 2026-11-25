@@ -48,6 +48,8 @@ class UI {
     p.noStroke();
     if (g.screen == GameState.MENU) {
       renderMenu(g);
+    } else if (g.screen == GameState.LEVEL_TUTORIAL) {
+      renderLevelTutorial(g);
     } else if (g.screen == GameState.SELECT) {
       renderSelect(g);
     } else if (g.screen == GameState.TUTORIAL) {
@@ -445,6 +447,67 @@ class UI {
     text("NORMAL 1x / CEPAT 4x mengubah kecepatan.", 74, 129, COL_TEXT, fTiny);
 
     text("Enter = Jalan, Spasi = Langkah, Esc = pilih level.", 12, 138, COL_MUTED, fTiny);
+  }
+
+  void renderLevelTutorial(GameState g) {
+    if (g.tutorialLevelIdx < 0 || g.tutorialLevelIdx >= g.levelCount) return;
+    TutorialSession s = g.tutorialSession;
+    if (s == null) return;
+
+    Level lv = g.levels[g.tutorialLevelIdx];
+    drawPlayBackground();
+    box(0, 0, 320, 14, COL_PANEL);
+    backButton();
+    text("TUTORIAL LEVEL " + lv.id, 20, 7, COL_GOLD, fSmall);
+    textRight((s.page + 1) + "/3", 312, 7, COL_TEXT, fTiny);
+
+    if (s.page < 2) {
+      String[] lines = s.page == 0 ? s.data.guide : s.data.tips;
+      String heading = s.page == 0 ? "KENALAN DENGAN KONSEP" : "TIPS SEBELUM BERMAIN";
+      panel(6, 18, 308, 134, COL_FLOW);
+      text(heading, 14, 26, COL_GOLD, fSmall);
+      text(s.data.concept + ": " + s.data.task, 14, 36, COL_TEXT, fTiny);
+      demoBox(12, 48, 84, 40, "INBOX", COL_IO);
+      demoItems(new int[] {1, 2, 3}, 20, 62, -1);
+      drawRobot(116, 52);
+      demoBox(214, 48, 88, 40, "OUTBOX", COL_MEM);
+      textCenter("kosong", 258, 70, COL_MUTED, fTiny);
+      for (int i = 0; i < lines.length && i < 4; i++) {
+        text("- " + lines[i], 14, 101 + i * 10, COL_TEXT, fTiny);
+      }
+    } else {
+      panel(6, 18, 308, 134, COL_FLOW);
+      text("LATIHAN INTERAKTIF", 14, 26, COL_GOLD, fSmall);
+      text(s.data.task, 14, 35, COL_TEXT, fTiny);
+      for (int i = 0; i < s.data.seq.length && i < 8; i++) {
+        int col = i % 2;
+        int row = i / 2;
+        float x = 14 + col * 146;
+        float y = 44 + row * 14;
+        boolean done = i < s.progress;
+        boolean current = i == s.progress && !s.solved;
+        box(x, y, 140, 12, done ? 0xFF2E5A34 : (current ? 0xFF5A4A1E : COL_PANEL_DARK));
+        box(x, y, 2, 12, done ? COL_MEM : (current ? COL_GOLD : COL_LOCK));
+        text((i + 1) + ". " + s.shortOp(s.data.seq[i]), x + 5, y + 6,
+          done ? COL_MEM : (current ? COL_GOLD : COL_MUTED), fTiny);
+      }
+      panelDark(14, 104, 292, 18, COL_PANEL_HI);
+      text("INBOX: " + s.inboxIndex + "/" + s.data.inbox.length, 18, 113, COL_IO, fTiny);
+      text("TANGAN: " + (s.hand == null ? "-" : s.hand.toString()), 100, 113, COL_GOLD, fTiny);
+      text("OUTBOX: " + s.outbox.size(), 220, 113, COL_MEM, fTiny);
+      for (int i = 0; i < 4; i++) {
+        float x = 4 + i * 79;
+        button(x, 124, 75, 18, s.shortOp(s.options[i]), COL_FLOW);
+      }
+      int feedbackColor = s.solved ? COL_MEM : (s.feedback.startsWith("Benar") ? COL_IO : COL_WARN);
+      text(s.feedback, 14, 148, feedbackColor, fTiny);
+    }
+
+    button(6, 158, 54, 16, s.page == 2 ? "< ULANGI" : "< KEMBALI", COL_PANEL_HI);
+    button(112, 158, 64, 16, "LEWATI", COL_PANEL_HI);
+    String next = s.page == 2 ? (s.solved ? "MULAI LEVEL" : "SELESAI DULU")
+      : (s.page == 1 ? "COBA >" : "LANJUT >");
+    button(220, 158, 94, 16, next, s.solved ? COL_MEM : COL_BLUE);
   }
 
   // ---------- pilih level ----------
@@ -1002,6 +1065,32 @@ class UI {
       return;
     }
 
+    if (g.screen == GameState.LEVEL_TUTORIAL) {
+      TutorialSession s = g.tutorialSession;
+      if (s == null) return;
+      if (hit(x, y, 2, 2, 12, 10)) {
+        g.openSelect();
+      } else if (hit(x, y, 6, 158, 54, 16)) {
+        if (s.page == 0) g.openSelect();
+        else if (s.page == 2) s.retry();
+        else s.page--;
+      } else if (hit(x, y, 112, 158, 64, 16)) {
+        g.finishLevelTutorial();
+      } else if (hit(x, y, 220, 158, 94, 16)) {
+        if (s.page < 2) s.page++;
+        else if (s.solved) g.finishLevelTutorial();
+      } else if (s.page == 2) {
+        for (int i = 0; i < 4; i++) {
+          float bx = 4 + i * 79;
+          if (hit(x, y, bx, 124, 75, 18)) {
+            s.click(s.options[i]);
+            return;
+          }
+        }
+      }
+      return;
+    }
+
     if (g.screen == GameState.SELECT) {
       if (hit(x, y, 2, 2, 12, 10)) {
         g.openMenu();
@@ -1090,6 +1179,21 @@ class UI {
   }
 
   void keyPressed(GameState g) {
+    if (g.screen == GameState.LEVEL_TUTORIAL) {
+      TutorialSession s = g.tutorialSession;
+      if (p.keyCode == K_ESC) {
+        g.openSelect();
+      } else if (s != null && p.keyCode == K_LEFT) {
+        if (s.page == 0) g.openSelect();
+        else s.page--;
+      } else if (s != null && (p.keyCode == K_RIGHT || p.keyCode == K_ENTER || p.keyCode == K_RETURN)) {
+        if (s.page < 2) s.page++;
+        else if (s.solved) g.finishLevelTutorial();
+      } else if (s != null && s.page == 2 && p.key >= '1' && p.key <= '4') {
+        s.click(s.options[p.key - '1']);
+      }
+      return;
+    }
     if (g.screen == GameState.TUTORIAL) {
       if (p.keyCode == K_ESC) g.openMenu();
       else if (p.keyCode == K_LEFT) g.tutorialPrev();

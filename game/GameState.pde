@@ -10,6 +10,7 @@ class GameState {
   static final int SELECT = 1;
   static final int PLAY = 2;
   static final int TUTORIAL = 3;
+  static final int LEVEL_TUTORIAL = 4;
 
   static final int TUTORIAL_PAGES = 11;
 
@@ -24,6 +25,8 @@ class GameState {
   String[] savedPrograms = new String[11];
   boolean tutorialDone = false;
   int tutorialPage = 0;
+  int tutorialLevelIdx = -1;
+  TutorialSession tutorialSession;
 
   Program program;
   Interpreter vm;
@@ -196,6 +199,32 @@ class GameState {
       tutorialDone = true;
       saveProgress();
     }
+    openLevelTutorial(idx);
+  }
+
+  void openLevelTutorial(int idx) {
+    if (idx < 0 || idx >= levelCount) return;
+    tutorialLevelIdx = idx;
+    tutorialSession = new TutorialSession(TutorialLevel.dataFor(levels[idx].id), levels[idx]);
+    running = false;
+    resultShown = false;
+    helpShown = false;
+    hintStage = 0;
+    screen = LEVEL_TUTORIAL;
+  }
+
+  void finishLevelTutorial() {
+    int idx = tutorialLevelIdx;
+    if (idx < 0 || idx >= levelCount) {
+      openSelect();
+      return;
+    }
+    tutorialSession = null;
+    tutorialLevelIdx = -1;
+    enterPlay(idx);
+  }
+
+  void enterPlay(int idx) {
     currentLevel = idx;
     helpShown = false;
     hintStage = 0;
